@@ -1,5 +1,6 @@
 package com.foxminded.senkiv;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,29 +17,33 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CharCounterTest {
 	private CharCounter charCounter;
+	private Cache cache;
+	private InformationExchanger exchanger;
 
 	@BeforeEach
 	void setUp() {
 		charCounter = new CharCounter();
+		this.cache = charCounter.cache;
+		this.exchanger = charCounter.exchanger;
 	}
 
 	@Test
 	void addToCharCounter_shouldAddLetterToStorageIfItOccurredFirstTime() {
-		String result = charCounter.prettyOutput(charCounter.getCharCount("a"));
+		String result = exchanger.prettyOutput(charCounter.getCharCount("a"));
 
 		assertEquals(String.format("%n\"a\" : 1"), result);
 	}
 
 	@Test
 	void addToCharCounter_shouldIncrementLetterCounterIfItOccurredSecondTime() {
-		String result = charCounter.prettyOutput(charCounter.getCharCount("aa"));
+		String result = exchanger.prettyOutput(charCounter.getCharCount("aa"));
 
 		assertEquals(String.format("%n\"a\" : 2"), result);
 	}
 
 	@Test
 	void getCharCount_shouldReturnCorrectResultIfInputIncludesOnlySpaces() {
-		String result = charCounter.prettyOutput(charCounter.getCharCount("        "));
+		String result = exchanger.prettyOutput(charCounter.getCharCount("        "));
 
 		assertEquals(String.format("%n\" \" : 8"), result);
 	}
@@ -53,7 +58,7 @@ class CharCounterTest {
 
 	@Test
 	void getCharCount_shouldCountAndAddToCounterAllCharsFromString() {
-		String actualResult = charCounter.prettyOutput(charCounter.getCharCount("qwerty "));
+		String actualResult = exchanger.prettyOutput(charCounter.getCharCount("qwerty "));
 		String expectedResult = String.format(
 			"%n\"q\" : 1" +
 				"%n\"w\" : 1" +
@@ -69,13 +74,13 @@ class CharCounterTest {
 
 	@Test
 	void getCharCount_shouldWorkWithEmptyInput() {
-		String actualResult = charCounter.prettyOutput(charCounter.getCharCount(""));
+		String actualResult = exchanger.prettyOutput(charCounter.getCharCount(""));
 		assertEquals("", actualResult);
 	}
 
 	@Test
 	void getCharCount_shouldWorkWithSpecialCharacters() {
-		String actualResult = charCounter.prettyOutput(charCounter.getCharCount("$$$$%%%%&&&&****"));
+		String actualResult = exchanger.prettyOutput(charCounter.getCharCount("$$$$%%%%&&&&****"));
 		String expectedResult = String.format(
 			"%n\"%s\" : %d" +
 				"%n\"%s\" : %d" +
@@ -88,7 +93,7 @@ class CharCounterTest {
 
 	@Test
 	void getCharCount_shouldCountMixedCaseCharacters() {
-		String actualResult = charCounter.prettyOutput(charCounter.getCharCount("HeLlo_WoRlD!"));
+		String actualResult = exchanger.prettyOutput(charCounter.getCharCount("HeLlo_WoRlD!"));
 		String expectedResult = String.format(
 			"%n\"%s\" : %d" +
 				"%n\"%s\" : %d" +
@@ -113,7 +118,7 @@ class CharCounterTest {
 		charCounter.getCharCount("Bye");
 		charCounter.getCharCount("asd asd asd");
 		charCounter.getCharCount("23414");
-		Set<String> actualResult = charCounter.getCachedStrings();
+		Set<String> actualResult = cache.getCachedStrings();
 		Set<String> expectedResult = new HashSet<>();
 		expectedResult.add("148091840980193840@&#%*&@#*%&@*#%&)@*#%");
 		expectedResult.add("QWERTY");
@@ -125,8 +130,8 @@ class CharCounterTest {
 	}
 
 	@Test
-	void getCharCount_shouldThrowNullPointerExceptionIfParameterIsNull() {
-		assertThrows(NullPointerException.class, () -> charCounter.getCharCount(null));
+	void getCharCount_shouldThrowIllegalArgumentExceptionIfParameterIsNull() {
+		assertThrows(IllegalArgumentException.class, () -> charCounter.exchanger.validate(null));
 	}
 
 	@Test
@@ -140,15 +145,25 @@ class CharCounterTest {
 		assertEquals(expectedResult, actualResult);
 	}
 
-	private static final CharCounter cc = new CharCounter();
+
+}
+
+class ParametrizedCharCounterTest {
+	static CharCounter cc;
+	@BeforeAll
+	static void setUp(){
+		cc = new CharCounter();
+	}
+
 
 	@ParameterizedTest
 	@CsvSource({"Hello , 1", "Bye, 2", "Hello, 2", "Bye, 2","Hello, 2","Hello, 2","Hello, 2"})
 	void getCharCount_shouldNotStoreDuplicates(String inputString, int sizeOfCache){
 		cc.getCharCount(inputString);
-		int actualSize = cc.getCachedStrings().size();
+		int actualSize = cc.cache.getCachedStrings().size();
 		assertEquals(sizeOfCache, actualSize);
 	}
 }
+
 
 
