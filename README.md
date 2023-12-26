@@ -13,11 +13,6 @@ This project demonstrates the use of the Java Collections API to count the frequ
 
 - Java JDK 8 or above.
 
-## Setup and Installation
-
-1. **Clone the Repository**: `git clone https://github.com/username/char-count-java.git`
-2. **Navigate to the Directory**: `cd char-count-java`
-
 ## Usage
 
 To run the program, compile the Java files and then run the main class. You can provide the string via standard input.
